@@ -1,0 +1,29 @@
+{% set title = 'Home page' %}
+{% extends "layout/base.html" %}
+{% block content %}
+<div>
+    <h1 class="title is-4">this is home page content</h1>
+    <div>
+        <strong>Current Username is: {{ username }}</strong>
+    </div>
+    {{ currentTime }}
+</div>
+{% endblock %}
+
+{% block content_details %}
+ <ol>
+     {% for todo in todoItems %}
+         <li>
+             {{ todo.label }} {{'Completed' if todo.completed else 'Pending'}}
+             <div>
+                Loop properties
+                 {{loop.index}}
+                 {{loop.index0}}
+                 {{loop.first}}
+                 {{loop.last}}
+                </div>
+
+         </li>
+     {% endfor %}
+ </ol>
+{% endblock %}

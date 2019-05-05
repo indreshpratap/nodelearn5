@@ -1,0 +1,24 @@
+
+{% include "layout/head.html" %}
+<body>
+    <div class="container" style="margin-top: 1rem">
+        <div class="card">
+            <div class="card-content">
+                {% block content %}
+
+                {% endblock %}
+            </div>
+        </div>
+
+        <div style="margin:1rem">
+            {% block content_details %}
+
+            {% endblock %}
+
+        </div>
+    </div>
+
+    {% include "layout/footer.html" %}
+</body>
+
+</html>
