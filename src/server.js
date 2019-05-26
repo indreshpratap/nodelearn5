@@ -1,8 +1,14 @@
 var express = require('express');
 var nunjucks = require('nunjucks');
 var path = require('path');
-//require('./examples/1-module');
+var mountRoutes = require('./modules');
+var bodyParser = require('body-parser');
+require('./dao');
+
+
 var app = express();
+
+app.use(bodyParser.json());
 
 //app.use("/resources",express.static(path.resolve(__dirname,'assets')));
 app.use(express.static(path.resolve(__dirname,'assets')));
@@ -64,6 +70,9 @@ app.get("/process-json", (request, response) => {
     response.status(500).json({ error: 'Not a valid request' });
 });
 
+/* ------------------------- Module routes mounting ------------------------- */
+
+mountRoutes(app);
 
 // wildcard handler always keep at bottom
 app.get("/**", (request, response) => {
