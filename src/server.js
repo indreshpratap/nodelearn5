@@ -3,8 +3,8 @@ var nunjucks = require('nunjucks');
 var path = require('path');
 var mountRoutes = require('./modules');
 var bodyParser = require('body-parser');
-require('./dao');
-
+require('./dao'); // for sqlite
+require('./mdb'); // for mongodb
 
 var app = express();
 
