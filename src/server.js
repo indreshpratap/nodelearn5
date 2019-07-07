@@ -5,6 +5,7 @@ var mountRoutes = require('./modules');
 var bodyParser = require('body-parser');
 var passport = require('passport');
 var session = require('express-session');
+var FileStore = require('session-file-store')(session);
 
 require('./dao'); // for sqlite
 require('./mdb'); // for mongodb
@@ -12,7 +13,14 @@ var app = express();
 
 app.use(bodyParser.json());
 // app.use(bodyParser.urlencoded({ extended: false }));
-app.use(session({ secret: "secret", resave: false, saveUninitialized: true, cookie: { secure: false } }));
+app.use(session({
+    secret: "secret",
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false },
+    store: new FileStore({}),
+}));
+
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -32,8 +40,15 @@ passport.use(new LocalStrategy({
     usernameField: 'username',
     passwordField: 'password'
 }, function (username, password, done) {
-    console.log(username, password);
-    return done(null, { id: 1, name: "user 1" },null);
+    if (username === 'admin' && password === 'admin') {
+        return done(null, { id: 1, name: 'admin', role: 'admin' }, null);
+    } else if (username === "user" && password === "user") {
+        return done(null, { id: 2, name: 'user one', role: 'user' }, null);
+    } else {
+        return done(null, false, { message: "Username or password is incorrect!" });
+    }
+
+
 }));
 
 
@@ -65,24 +80,31 @@ app.post('/jwt-login', (req, res, next) => {
 
     passport.authenticate("local", (err, user, info) => {
         console.log("user", user, err);
-        req.logIn(user, (err1) => {
-            if (err1) {
-                console.log(err1);
-                res.status(500).json({ status: false });
-            } else {
-                res.json(req.user);
-            }
-        });
+
+        if (err) {
+            res.status(500).json({ error: 'Internal server error' });
+        } else if (!user) {
+            res.status(403).json({ message: info.message });
+        } else if (user) {
+            req.logIn(user, (err1) => {
+                if (err1) {
+                    console.log(err1);
+                    res.status(500).json({ status: false });
+                } else {
+                    res.json(req.user);
+                }
+            });
+        }
 
     })(req, res, next);
 });
 
 
 app.post('/do-login',
- passport.authenticate('local'),
+    passport.authenticate('local'),
     (req, res) => {
 
-        console.log(req.body,req.isAuthenticated());
+        console.log(req.body, req.isAuthenticated());
         res.json(req.body);
     })
 app.get("/home", (request, response) => {
@@ -114,8 +136,24 @@ app.get("/product/:id/:name/details", (request, response) => {
 })
 
 app.get("/data", (request, response) => {
-    response.json({ name: "xyz", message: "This is message" });
+    // console.log(request.user);
+    response.json({
+        name: "xyz", message: "This is message",
+        authenticated: request.isAuthenticated(),
+        user: request.user || {}
+    });
 });
+
+
+app.get('/logout', (req, res) => {
+    req.logout();
+    req.session.destroy((err) => {
+        if (err) {
+            console.log(err);
+        }
+    })
+    res.send('done');
+})
 
 app.get("/process", (request, response) => {
     response.status(500).send('Not a valid request');
@@ -134,6 +172,15 @@ app.get("/**", (request, response) => {
     response.status(404).send("Requested url not found " + request.url);
 });
 
+//Global error handler
+app.use((err, req, res, next) => {
+
+    if (req.xhr) {
+        res.json({ error: err })
+    } else {
+        res.render('500-error.html');
+    }
+})
 app.listen(3000, () => {
     console.log("Express server is up and running at 3000");
 });
