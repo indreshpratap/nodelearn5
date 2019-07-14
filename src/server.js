@@ -127,7 +127,10 @@ app.get("/home", (request, response) => {
 //query parameter ?
 app.get("/search", (request, response) => {
     console.log(request.url);
-    response.send(request.query);
+     response.json({parameters:request.query});
+});
+app.get("/new", (request, response) => {
+     response.send("new route added");
 });
 
 // Params
