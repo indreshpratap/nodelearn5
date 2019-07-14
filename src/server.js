@@ -1,3 +1,4 @@
+require('dotenv').config();
 var express = require('express');
 var nunjucks = require('nunjucks');
 var path = require('path');
@@ -181,7 +182,7 @@ app.use((err, req, res, next) => {
         res.render('500-error.html');
     }
 })
-app.listen(3000, () => {
-    console.log("Express server is up and running at 3000");
+app.listen(process.env.PORT, () => {
+    console.log(`Express server is up and running at ${process.env.PORT}`);
 });
 
